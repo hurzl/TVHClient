@@ -93,7 +93,7 @@ public class ChannelListAdapter extends ArrayAdapter<Channel> {
         public TextView channel;
         public TextView time;
         public TextView duration;
-        public ProgressBar progress;
+        public ProgressBar progressbar;
         public ImageView state;
         public TextView genre;
         public ImageView dual_pane_list_item_selection;
@@ -117,7 +117,7 @@ public class ChannelListAdapter extends ArrayAdapter<Channel> {
             holder.title = (TextView) view.findViewById(R.id.title);
             holder.nextTitle = (TextView) view.findViewById(R.id.next_title);
             holder.channel = (TextView) view.findViewById(R.id.channel);
-            holder.progress = (ProgressBar) view.findViewById(R.id.progress);
+            holder.progressbar = (ProgressBar) view.findViewById(R.id.progressbar);
             holder.time = (TextView) view.findViewById(R.id.time);
             holder.duration = (TextView) view.findViewById(R.id.duration);
             holder.state = (ImageView) view.findViewById(R.id.state);
@@ -149,11 +149,13 @@ public class ChannelListAdapter extends ArrayAdapter<Channel> {
         if (c != null) {
 
             // Set the initial values
-            if (holder.progress != null) {
-                holder.progress.setProgress(0);
+            if (holder.progressbar != null) {
+                holder.progressbar.setProgress(0);
+                holder.progressbar.setVisibility(prefs.getBoolean("showProgramProgressPref", true) ? View.VISIBLE : View.GONE);
             }
             if (holder.channel != null) {
                 holder.channel.setText(c.name);
+                holder.channel.setVisibility(prefs.getBoolean("showChannelNamePref", true) ? View.VISIBLE : View.GONE);
             }
 
             Utils.setChannelIcon(holder.icon, holder.icon_text, c);
@@ -245,11 +247,10 @@ public class ChannelListAdapter extends ArrayAdapter<Channel> {
                 }
                 Utils.setTime(holder.time, p.start, p.stop);
                 Utils.setDuration(holder.duration, p.start, p.stop);
-                Utils.setProgress(holder.progress, p.start, p.stop);
+                Utils.setProgress(holder.progressbar, p.start, p.stop);
 
                 if (holder.nextTitle != null && np != null) {
-                    final boolean showNextProgram = prefs.getBoolean("showNextProgramPref", true);
-                    holder.nextTitle.setVisibility(showNextProgram ? View.VISIBLE : View.GONE);
+                    holder.nextTitle.setVisibility(prefs.getBoolean("showNextProgramPref", true) ? View.VISIBLE : View.GONE);
                     holder.nextTitle.setText(context.getString(R.string.next_program, np.title));
                 }
             }
@@ -259,8 +260,8 @@ public class ChannelListAdapter extends ArrayAdapter<Channel> {
                 if (holder.title != null) {
                     holder.title.setText(R.string.no_data);
                 }
-                if (holder.progress != null) {
-                    holder.progress.setVisibility(View.GONE);
+                if (holder.progressbar != null) {
+                    holder.progressbar.setVisibility(View.GONE);
                 }
                 if (holder.time != null) {
                     holder.time.setVisibility(View.GONE);

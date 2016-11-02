@@ -4,11 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/toolbar_background_color" />
+    <include layout="@layout/multiline_toolbar" />
 
     <FrameLayout
         android:layout_width="match_parent"

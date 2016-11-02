@@ -2,7 +2,10 @@ package org.tvheadend.tvhclient.fragments;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.Toolbar;
@@ -65,7 +68,7 @@ public class ProgramDetailsFragment extends DialogFragment implements HTSListene
     private Button recordSeriesButton;
     private Button recordRemoveButton;
 
-    private Toolbar toolbar;
+    private TextView toolbarTitle;
     private View toolbarShadow;
     private TVHClientApplication app;
     private ImageView imageView;
@@ -146,7 +149,7 @@ public class ProgramDetailsFragment extends DialogFragment implements HTSListene
         ratingBarLabel = (TextView) v.findViewById(R.id.star_rating_label);
         ratingBarText = (TextView) v.findViewById(R.id.star_rating_text);
         ratingBar = (RatingBar) v.findViewById(R.id.star_rating);
-        toolbar = (Toolbar) v.findViewById(R.id.toolbar);
+        toolbarTitle = (TextView) v.findViewById(R.id.toolbar_title);
         toolbarShadow = v.findViewById(R.id.toolbar_shadow);
         imageView = (ImageView) v.findViewById(R.id.image);
         
@@ -169,10 +172,10 @@ public class ProgramDetailsFragment extends DialogFragment implements HTSListene
             return;
         }
 
-        toolbar.setVisibility(getDialog() != null ? View.VISIBLE : View.GONE);
+        toolbarTitle.setVisibility(getDialog() != null ? View.VISIBLE : View.GONE);
         toolbarShadow.setVisibility(getDialog() != null ? View.VISIBLE : View.GONE);
         if (getDialog() != null) {
-            toolbar.setTitle(program.title);
+            toolbarTitle.setText(program.title);
         }
 
         // Show the player controls
@@ -207,7 +210,8 @@ public class ProgramDetailsFragment extends DialogFragment implements HTSListene
         }
 
         // Show the program image if one exists
-        if (app.isUnlocked()) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        if (app.isUnlocked() && prefs.getBoolean("pref_show_program_artwork", false)) {
             app.log(TAG, "Starting download of program image " + program.image);
             ImageDownloadTask dt = new ImageDownloadTask(imageView);
             dt.execute(program.image, String.valueOf(program.id));

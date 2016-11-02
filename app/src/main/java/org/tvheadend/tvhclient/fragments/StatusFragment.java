@@ -18,8 +18,12 @@ import org.tvheadend.tvhclient.htsp.HTSService;
 import org.tvheadend.tvhclient.interfaces.ActionBarInterface;
 import org.tvheadend.tvhclient.interfaces.HTSListener;
 import org.tvheadend.tvhclient.model.Connection;
+import org.tvheadend.tvhclient.model.DiscSpace;
 import org.tvheadend.tvhclient.model.Recording;
+import org.tvheadend.tvhclient.model.Subscription;
+import org.tvheadend.tvhclient.model.SystemTime;
 
+import java.util.List;
 import java.util.Map;
 
 public class StatusFragment extends Fragment implements HTSListener {
@@ -145,18 +149,7 @@ public class StatusFragment extends Fragment implements HTSListener {
                 activity.runOnUiThread(new Runnable() {
                     public void run() {
                         connectionStatus = action;
-
-                        // The connection to the server is fine again, therefore
-                        // show the additional information again
-                        additionalInformationLayout.setVisibility(View.VISIBLE);
-                        showConnectionName();
-                        showConnectionStatus();
-                        String text = app.getChannels().size() + " " + getString(R.string.available);
-                        channels.setText(text);
-                        showRecordingStatus();
-
-                        // Also get the disc space in case it was not yet retrieved
-                        getDiscSpace();
+                        showCompleteStatus();
                     }
                 });
                 break;
@@ -203,28 +196,21 @@ public class StatusFragment extends Fragment implements HTSListener {
                             status.setText(R.string.loading);
                             additionalInformationLayout.setVisibility(View.GONE);
                             showConnectionName();
-                        } else {
-                            additionalInformationLayout.setVisibility(View.VISIBLE);
-                            showConnectionName();
-                            showConnectionStatus();
-                            String text = app.getChannels().size() + " " + getString(R.string.available);
-                            channels.setText(text);
-                            showRecordingStatus();
 
-                            // After the data has been loaded, the server accepts
-                            // new service calls, get the disc space information
-                            // from the server
-                            getDiscSpace();
+                            freediscspace.setText(R.string.loading);
+                            totaldiscspace.setText(R.string.loading);
+                        } else {
+                            showCompleteStatus();
                         }
                     }
                 });
                 break;
             case Constants.ACTION_DISC_SPACE:
                 activity.runOnUiThread(new Runnable() {
-                    @SuppressWarnings("unchecked")
+                    @Override
                     public void run() {
                         if (isAdded()) {
-                            showDiscSpace((Map<String, String>) obj);
+                            showDiscSpace();
                         }
                     }
                 });
@@ -232,7 +218,40 @@ public class StatusFragment extends Fragment implements HTSListener {
         }
 	}
 
-	/**
+    /**
+     * Displays all available status information. This is the case
+     * when the loading is done and the connection is fine
+     */
+    private void showCompleteStatus() {
+        // The connection to the server is fine again, therefore
+        // show the additional information again
+        additionalInformationLayout.setVisibility(View.VISIBLE);
+        showConnectionName();
+        showConnectionStatus();
+        showRecordingStatus();
+        showSubscriptionStatus();
+        showDiscSpace();
+
+        // Show the number of available channels
+        final String text = app.getChannels().size() + " " + getString(R.string.available);
+        channels.setText(text);
+    }
+
+    /**
+     * Displays some subscription details of the available subscriptions
+     */
+    private void showSubscriptionStatus() {
+        app.log(TAG, "showSubscriptionStatus");
+        List<Subscription> subscriptions = app.getSubscriptions();
+        for (Subscription s : subscriptions) {
+            if (s != null) {
+                app.log(TAG, "subscription status " + s.status);
+
+            }
+        }
+    }
+
+    /**
 	 * Shows the name and address of a connection, otherwise shows an
      * information that no connection is selected or available. 
 	 */
@@ -295,29 +314,21 @@ public class StatusFragment extends Fragment implements HTSListener {
     }
 
     /**
-     * Calls the service to get the available disc space information from the
-     * server. Additionally sets the text views to loading until the data has
-     * been received.
-     */
-    private void getDiscSpace() {
-        freediscspace.setText(R.string.loading);
-        totaldiscspace.setText(R.string.loading);
-        Intent intent = new Intent(activity, HTSService.class);
-        intent.setAction(Constants.ACTION_GET_DISC_SPACE);
-        activity.startService(intent);
-    }
-
-    /**
      * Shows the available and total disc space either in MB or GB to avoid
      * showing large numbers. This depends on the size of the value.
-     * 
-     * @param list List with the total and free disk space values
      */
-    private void showDiscSpace(final Map<String, String> list) {
+    private void showDiscSpace() {
+        DiscSpace ds = app.getDiscSpace();
+        if (ds == null) {
+            freediscspace.setText(R.string.unknown);
+            totaldiscspace.setText(R.string.unknown);
+            return;
+        }
+
         try {
             // Get the disc space values and convert them to megabytes
-            long free = (Long.parseLong(list.get("freediskspace")) / 1000000);
-            long total = (Long.parseLong(list.get("totaldiskspace")) / 1000000);
+            long free = Long.valueOf(ds.freediskspace) / 1000000;
+            long total = Long.valueOf(ds.totaldiskspace) / 1000000;
 
             String freeDiscSpace;
             String totalDiscSpace;
