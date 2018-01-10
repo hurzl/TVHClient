@@ -360,12 +360,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             showProgramsFromTime = savedInstanceState.getLong("show_programs_from_time");
         }
 
-        // Resets the loading indication and updates the action 
+        // Resets the loading indication and updates the action
         // bar subtitle with the number of available channels
         channelLoadingTask = new Runnable() {
             public void run() {
                 // If the program guide is shown get the number of channels from the program guide
-                // pager fragment because it holds the channel fragment which in turn knows the channel count. 
+                // pager fragment because it holds the channel fragment which in turn knows the channel count.
                 Fragment f = getSupportFragmentManager().findFragmentById(R.id.main_fragment);
                 if (f != null && f instanceof ProgramGuidePagerFragment) {
                     int count = ((FragmentControlInterface) f).getItemCount();
@@ -624,7 +624,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         } else {
             headerResult.addProfiles(new ProfileDrawerItem().withName(R.string.no_connection_available));
         }
-        headerResult.setActiveProfile(databaseHelper.getSelectedConnection().id);
+        final Connection connection = databaseHelper.getSelectedConnection();
+        if (connection != null)
+            headerResult.setActiveProfile(connection.id);
     }
 
     /**
@@ -1017,7 +1019,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 }
             }
         } else {
-            // No custom request code was returned, nothing to to 
+            // No custom request code was returned, nothing to to
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
